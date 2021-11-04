@@ -13,11 +13,12 @@ import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
     // Buttons making up the board
-    private Button mBoardButtons[];
+    private Button boardButtons[];
     // Various text displayed
-    private TextView mInfoTextView;
+    private TextView mInfoTextView,pcScore,human,empate;
     private TicTacToeGame mGame;
-    private boolean mGameOver;
+    private boolean GameOver,humanStarts;
+    private Integer humanSc=0,androidScore=0,empateScore=0;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -36,28 +37,45 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         mGame= new TicTacToeGame();
         setContentView(R.layout.activity_main);
-        mBoardButtons = new Button[TicTacToeGame.BOARD_SIZE];
-        mBoardButtons[0] = (Button) findViewById(R.id.one);
-        mBoardButtons[1] = (Button) findViewById(R.id.two);
-        mBoardButtons[2] = (Button) findViewById(R.id.three);
-        mBoardButtons[3] = (Button) findViewById(R.id.four);
-        mBoardButtons[4] = (Button) findViewById(R.id.five);
-        mBoardButtons[5] = (Button) findViewById(R.id.six);
-        mBoardButtons[6] = (Button) findViewById(R.id.seven);
-        mBoardButtons[7] = (Button) findViewById(R.id.eight);
-        mBoardButtons[8] = (Button) findViewById(R.id.nine);
+        boardButtons = new Button[TicTacToeGame.BOARD_SIZE];
+        boardButtons[0] = (Button) findViewById(R.id.one);
+        boardButtons[1] = (Button) findViewById(R.id.two);
+        boardButtons[2] = (Button) findViewById(R.id.three);
+        boardButtons[3] = (Button) findViewById(R.id.four);
+        boardButtons[4] = (Button) findViewById(R.id.five);
+        boardButtons[5] = (Button) findViewById(R.id.six);
+        boardButtons[6] = (Button) findViewById(R.id.seven);
+        boardButtons[7] = (Button) findViewById(R.id.eight);
+        boardButtons[8] = (Button) findViewById(R.id.nine);
         mInfoTextView = (TextView) findViewById(R.id.information);
+        human = (TextView) findViewById(R.id.humanScore);
+        pcScore = (TextView) findViewById(R.id.pcScore);
+        empate = (TextView) findViewById(R.id.empate);
+        human.setText(humanSc.toString());
+        pcScore.setText(androidScore.toString());
+        empate.setText(empateScore.toString());
+        humanStarts=true;
+
         startNewGame();
     }
     private void startNewGame() {
         mGame.clearBoard();
-        for (int i = 0; i < mBoardButtons.length; i++) {
-            mBoardButtons[i].setText("");
-            mBoardButtons[i].setEnabled(true);
-            mBoardButtons[i].setOnClickListener(new ButtonClickListener(i));
+        for (int i = 0; i < boardButtons.length; i++) {
+            boardButtons[i].setText("");
+            boardButtons[i].setEnabled(true);
+            boardButtons[i].setOnClickListener(new ButtonClickListener(i));
         }
-        mInfoTextView.setText("You go first.");
-        this.mGameOver=false;
+        this.GameOver = false;
+        if(humanStarts) {
+            mInfoTextView.setText("you go first.");
+            humanStarts=!humanStarts;
+        }
+        else {
+            mInfoTextView.setText("android go first.");
+            int move = mGame.getComputerMove();
+            setMove(TicTacToeGame.COMPUTER_PLAYER, move);
+            humanStarts=!humanStarts;
+        }
     }
     private class ButtonClickListener implements View.OnClickListener {
         int location;
@@ -65,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
             this.location = location;
         }
         public void onClick(View view) {
-            if (mBoardButtons[location].isEnabled()) {
+            if (boardButtons[location].isEnabled()) {
                 setMove(TicTacToeGame.HUMAN_PLAYER, location);
                 // If no winner yet, let the computer make a move
                 int winner = mGame.checkForWinner();
@@ -81,34 +99,44 @@ public class MainActivity extends AppCompatActivity {
                 else if (winner == 1)
                 {
                     mInfoTextView.setText("It's a tie!");
-                    mGameOver=true;
+                    GameOver=true;
+                    empateScore++;
+                    empate.setText(empateScore.toString());
                 }
 
                 else if (winner == 2) {
                     mInfoTextView.setText("You won!");
-                    mGameOver = true;
+                    GameOver = true;
+                    humanSc++;
+                    human.setText(humanSc.toString());
                 }
                 else {
                     mInfoTextView.setText("Android won!");
-                    mGameOver = true;
+                    GameOver = true;
+                    androidScore++;
+                    pcScore.setText(androidScore.toString());
                 }
             }
         }
     }
 
     private void setMove(char player, int location) {
-        if (!mGameOver) {
+        if (!GameOver) {
             mGame.setMove(player, location);
-            mBoardButtons[location].setEnabled(false);
-            mBoardButtons[location].setText(String.valueOf(player));
+            boardButtons[location].setEnabled(false);
+            boardButtons[location].setText(String.valueOf(player));
             if (player == TicTacToeGame.HUMAN_PLAYER)
-                mBoardButtons[location].setTextColor(Color.rgb(0, 200, 0));
+                boardButtons[location].setTextColor(Color.rgb(0, 200, 0));
             else
-                mBoardButtons[location].setTextColor(Color.rgb(200, 0, 0));
+                boardButtons[location].setTextColor(Color.rgb(200, 0, 0));
         }
 
     }
 }
+
+
+
+
 
 
 
