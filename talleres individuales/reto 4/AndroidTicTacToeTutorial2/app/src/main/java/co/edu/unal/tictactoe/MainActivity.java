@@ -21,6 +21,7 @@ public class MainActivity extends AppCompatActivity {
     private Button boardButtons[];
     private Toast toast;
     private int selected;
+    private boolean endgame=false;
     // Various text displayed
     private TextView mInfoTextView,pcScore,human,empate;
     private TicTacToeGame mGame;
@@ -41,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.new_game:
                 startNewGame();
+                endgame=false;
                 return true;
             case R.id.ai_difficulty:
                 showDialog(DIALOG_DIFFICULTY_ID);
@@ -161,15 +163,16 @@ public class MainActivity extends AppCompatActivity {
             this.location = location;
         }
         public void onClick(View view) {
-            if (boardButtons[location].isEnabled()) {
+            if (boardButtons[location].isEnabled()&& !endgame) {
                 setMove(TicTacToeGame.HUMAN_PLAYER, location);
                 // If no winner yet, let the computer make a move
                 int winner = mGame.checkForWinner();
-                if (winner == 0) {
+                if (winner == 0 ) {
                     mInfoTextView.setText("It's Android's turn.");
                     int move = mGame.getComputerMove();
                     setMove(TicTacToeGame.COMPUTER_PLAYER, move);
                     winner = mGame.checkForWinner();
+
                 }
                 if (winner == 0) {
                     mInfoTextView.setText("It's your turn.");
@@ -180,6 +183,7 @@ public class MainActivity extends AppCompatActivity {
                     GameOver=true;
                     empateScore++;
                     empate.setText(empateScore.toString());
+                    endgame=true;
                 }
 
                 else if (winner == 2) {
@@ -187,12 +191,14 @@ public class MainActivity extends AppCompatActivity {
                     GameOver = true;
                     humanSc++;
                     human.setText(humanSc.toString());
+                    endgame=true;
                 }
                 else {
                     mInfoTextView.setText("Android won!");
                     GameOver = true;
                     androidScore++;
                     pcScore.setText(androidScore.toString());
+                    endgame=true;
                 }
             }
         }
