@@ -11,31 +11,40 @@ import android.widget.Button;
 
 public class First_page extends AppCompatActivity {
     private boolean singleUser = false;
-    private  Button button = (Button) findViewById(R.id.button11);
-    private  Button button1 = (Button) findViewById(R.id.button12);
-    private Intent intent = new Intent(this, MainActivity.class);
+    private  Button button ;
+    private  Button button1 ;
+    private Intent intent ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        intent= new Intent(this, MainActivity.class);
+        button = (Button) findViewById(R.id.button11);
+        button1 = (Button) findViewById(R.id.button12);
+
         setContentView(R.layout.activity_first_page);
-        button.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
+
+
+
+    }
+    public void cambiar_multiplayer(View view) {
+        // Do something in response to button click
+
                 singleUser = true;
                 intent.putExtra("singleUser",singleUser);
                 startActivity(intent);
-            }
-        });
 
-        button1.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
+    }
+    public void cambiar_multiplayer2(View view) {
+        // Do something in response to button click
+
 
                 intent.putExtra("singleUser",singleUser);
                 startActivity(intent);
-            }
-        });
+
 
     }
+
 
 
 }

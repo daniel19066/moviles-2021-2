@@ -24,7 +24,8 @@
         android:layout_marginTop="90dp"
         android:background="#B2BCF8"
         android:gravity="center"
-        android:text="Single Player" />
+        android:text="Single Player"
+        android:onClick="cambiar_multiplayer"/>
 
     <Button
         android:id="@+id/button12"
@@ -33,6 +34,7 @@
         android:layout_marginTop="30dp"
         android:background="#B2BCF8"
         android:gravity="center"
-        android:text="Multi Player" />
+        android:text="Multi Player"
+        android:onClick="cambiar_multiplayer2"/>
 
 </LinearLayout>

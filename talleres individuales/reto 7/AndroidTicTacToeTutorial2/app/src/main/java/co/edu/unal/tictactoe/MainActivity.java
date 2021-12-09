@@ -1,5 +1,6 @@
 package co.edu.unal.tictactoe;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.AlertDialog;
@@ -11,6 +12,7 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -20,12 +22,37 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.annotation.Nullable;
+
 
 public class MainActivity extends AppCompatActivity {
     // Buttons making up the board
     private Button boardButtons[];
+    char mBoard1[] ;
+    char juegocon;
+    private boolean singleplayer;
+    private Map<String, Object> juegoOnline ;
+    private String turnoOnline;
     private Toast toast;
+    private boolean isMyMove;
     private int selected;
+    FirebaseFirestore db = FirebaseFirestore.getInstance();
     private boolean endgame=false;
     // Various text displayed
     private TextView mInfoTextView,pcScore,human,empate;
@@ -51,6 +78,38 @@ public class MainActivity extends AppCompatActivity {
         mHumanMediaPlayer.release();
         mComputerMediaPlayer.release();
     }
+    @Override
+    protected void onDestroy(){
+        super.onDestroy();
+        if(!singleplayer) {
+            juegoOnline.put("0", " ");
+            juegoOnline.put("1", " ");
+            juegoOnline.put("2", " ");
+            juegoOnline.put("3", " ");
+            juegoOnline.put("4", " ");
+            juegoOnline.put("5", " ");
+            juegoOnline.put("6", " ");
+            juegoOnline.put("7", " ");
+            juegoOnline.put("8", " ");
+            juegoOnline.put("turno1", "");
+            juegoOnline.put("turno2", "");
+            juegoOnline.put("turnoactual", "1");
+            db.collection("board").document("board_chars")
+                    .set(juegoOnline)
+                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            System.out.println("funciono escribir");
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            System.out.println("no funciono escribir");
+                        }
+                    });
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -63,6 +122,33 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.new_game:
+                if(!singleplayer) {
+                    juegoOnline.put("0", " ");
+                    juegoOnline.put("1", " ");
+                    juegoOnline.put("2", " ");
+                    juegoOnline.put("3", " ");
+                    juegoOnline.put("4", " ");
+                    juegoOnline.put("5", " ");
+                    juegoOnline.put("6", " ");
+                    juegoOnline.put("7", " ");
+                    juegoOnline.put("8", " ");
+                    juegoOnline.put("turno1", "");
+                    juegoOnline.put("turno2", "");
+                    db.collection("board").document("board_chars")
+                            .set(juegoOnline)
+                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void aVoid) {
+                                    System.out.println("funciono escribir");
+                                }
+                            })
+                            .addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    System.out.println("no funciono escribir");
+                                }
+                            });
+                }
                 startNewGame();
                 endgame=false;
                 return true;
@@ -139,12 +225,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mGame= new TicTacToeGame();
+        singleplayer=getIntent().getBooleanExtra("singleUser",true);
         setContentView(R.layout.activity_main);
         boardButtons = new Button[TicTacToeGame.BOARD_SIZE];
         mBoardView = (BoardView) findViewById(R.id.board);
         mBoardView.setGame(mGame);
+        mBoard1 = new char[]{' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '};
         // Listen for touches on the board
         mBoardView.setOnTouchListener(mTouchListener);
+        isMyMove=false;
         mInfoTextView = (TextView) findViewById(R.id.information);
         human = (TextView) findViewById(R.id.humanScore);
         pcScore = (TextView) findViewById(R.id.pcScore);
@@ -174,6 +263,206 @@ public class MainActivity extends AppCompatActivity {
 
         }
         displayScores();
+        if(!singleplayer) {
+            db.collection("board").document("board_chars")
+                    .get()
+                    .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                            if (task.isSuccessful()) {
+                                DocumentSnapshot document = task.getResult();
+                                if (document.exists()) {
+                                    System.out.println(document.getData());
+                                    juegoOnline=document.getData();
+
+                                    if(juegoOnline.get("turno1")==""){
+                                        juegoOnline.put("turno1","ocupado");
+                                        System.out.println(juegoOnline);
+                                        turnoOnline="1";
+                                        db.collection("board").document("board_chars")
+                                                .set(juegoOnline)
+                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                    @Override
+                                                    public void onSuccess(Void aVoid) {
+                                                        System.out.println("funciono escribir");
+                                                    }
+                                                })
+                                                .addOnFailureListener(new OnFailureListener() {
+                                                    @Override
+                                                    public void onFailure(@NonNull Exception e) {
+                                                        System.out.println("no funciono escribir");
+                                                    }
+                                                });
+                                    }else if(juegoOnline.get("turno2")==""){
+                                        juegoOnline.put("turno2","ocupado");
+                                        System.out.println(juegoOnline);
+                                        turnoOnline="2";
+
+                                        db.collection("board").document("board_chars")
+                                                .set(juegoOnline)
+                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                    @Override
+                                                    public void onSuccess(Void aVoid) {
+                                                        System.out.println("funciono escribir");
+                                                    }
+                                                })
+                                                .addOnFailureListener(new OnFailureListener() {
+                                                    @Override
+                                                    public void onFailure(@NonNull Exception e) {
+                                                        System.out.println("no funciono escribir");
+                                                    }
+                                                });
+                                    }else{
+                                        System.out.println("sala ocupada");
+                                    }
+                                    if (turnoOnline.equals("1")){
+                                        juegocon=TicTacToeGame.HUMAN_PLAYER;
+                                    }else{
+                                        juegocon=TicTacToeGame.COMPUTER_PLAYER;
+                                    }
+                                    if(juegoOnline.get("turno2").equals("")){
+                                        mBoardView.setEnabled(false);
+                                        mInfoTextView.setText("esperando segundo jugador");
+                                    } else if (juegoOnline.get("turno2").equals("ocupado") && juegoOnline.get("turno1").equals("ocupado")) {
+                                        if(juegoOnline.get("turnoactual").equals(turnoOnline)){
+                                            mInfoTextView.setText("tu turno");
+                                        }else{
+                                            mInfoTextView.setText("It's other player turn.");
+                                        }
+                                    }
+                                } else {
+                                    System.out.println("alv ese documento esta joto");
+                                }
+                            } else {
+                                System.out.println("alv no sirvio");
+                            }
+                        }
+                    });
+            db.collection("board")
+                    .whereEqualTo("turno1", "ocupado").addSnapshotListener(new EventListener<QuerySnapshot>() {
+                @Override
+                public void onEvent(@Nullable QuerySnapshot snapshots,
+                                    @Nullable FirebaseFirestoreException e) {
+                    if (e != null) {
+
+                        return;
+                    }
+
+                    for (DocumentChange dc : snapshots.getDocumentChanges()) {
+                        switch (dc.getType()) {
+                            case ADDED:
+
+                                break;
+                            case MODIFIED:
+                                juegoOnline =  dc.getDocument().getData();
+                                if(isMyMove==true){
+                                    System.out.println("vamos :2");
+                                }
+                                else{
+                                    for(int i=0;i<mBoard1.length;i++){
+                                        String aux= (String) juegoOnline.get(String.valueOf(i));
+                                        mBoard1[i]=aux.charAt(0);
+                                    }
+                                    mGame.setmBoard(mBoard1);
+                                    mBoardView.invalidate();
+                                    mBoardView.setEnabled(true);
+                                    if(juegoOnline.get("turno2").equals("")){
+                                        mBoardView.setEnabled(false);
+                                        mInfoTextView.setText("esperando segundo jugador");
+                                    }else{
+
+
+                                        if(juegoOnline.get("turnoactual").equals(turnoOnline)){
+                                            mInfoTextView.setText("tu turno");
+                                            mBoardView.setEnabled(true);
+                                        }else{
+                                            mInfoTextView.setText("It's other player turn.");
+                                            mBoardView.setEnabled(false);
+                                        }
+
+
+                                    }
+                                }
+                                break;
+                            case REMOVED:
+
+                                break;
+                        }
+                    }
+
+                }
+            });
+        }
+        /*Map<String, Object> user = new HashMap<>();
+        user.put("first", "Ada");
+        user.put("last", "Lovelace");
+        user.put("born", 1815);
+
+// Add a new document with a generated ID
+        db.collection("users")
+                .add(user)
+                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                    @Override
+                    public void onSuccess(DocumentReference documentReference) {
+                        System.out.println("sirvi :)");
+                        System.out.println("xd");
+
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        System.out.println("F");
+                    }
+                });
+        db.collection("users")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                System.out.println( document.getId() + " => " + document.getData());
+                            }
+                        } else {
+                            System.out.println("Error getting documents.");
+                        }
+                    }
+                });*/
+
+        /*Map<String, Object> board = new HashMap<>();
+        char[] board1=mGame.getmBoard();
+        for(int i=0;i<board1.length;i++){
+            board.put(String.valueOf(i), String.valueOf(board1[i]));
+        }
+        db.collection("board").document("board_chars")
+                .set(board)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                       System.out.println("DocumentSnapshot successfully written!");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        System.out.println("Error writing document");
+                    }
+                });
+        db.collection("board")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                System.out.println( document.getId() + " => " + document.getData());
+                            }
+                        } else {
+                            System.out.println("Error getting documents.");
+                        }
+                    }
+                });*/
     }
 
     @Override
@@ -232,16 +521,96 @@ public class MainActivity extends AppCompatActivity {
             int col = (int) event.getX() / mBoardView.getBoardCellWidth();
             int row = (int) event.getY() / mBoardView.getBoardCellHeight();
             int pos = row * 3 + col;
-            if (!endgame && setMove(TicTacToeGame.HUMAN_PLAYER, pos)){
+
+            if(!singleplayer ){
+
+
+
+                final DocumentReference docRef = db.collection("board").document("board_chars");
+
+                mBoardView.setEnabled(false);
+
+                if(juegoOnline.get("turnoactual").equals(turnoOnline)){
+                    isMyMove=true;
+                    if (!endgame && setMove(juegocon, pos)){
+// If no winner yet, let the computer make a move
+                        isMyMove=false;
+                        juegoOnline.put(String.valueOf(pos),String.valueOf(juegocon));
+                        final int[] winner = {mGame.checkForWinner()};
+                        if (turnoOnline.equals("1")){
+                            juegoOnline.put("turnoactual","2");
+                        }else{
+                            juegoOnline.put("turnoactual","1");
+                        }
+
+
+                        if (winner[0] == 0) {
+                            db.collection("board").document("board_chars")
+                                    .set(juegoOnline)
+                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void aVoid) {
+                                            System.out.println("funciono escribir");
+                                        }
+                                    })
+                                    .addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            System.out.println("no funciono escribir");
+                                        }
+                                    });
+
+                            mInfoTextView.setText("It's other player turn.");
+
+
+                        }
+                        else if (winner[0] == 1)
+                        {
+                            mInfoTextView.setText("It's a tie!");
+                            GameOver=true;
+                            empateScore++;
+                            empate.setText(empateScore.toString());
+                            endgame=true;
+                        }
+
+                        else if (winner[0] == 2) {
+                            mInfoTextView.setText("You won!");
+                            GameOver = true;
+                            humanSc++;
+                            human.setText(humanSc.toString());
+                            endgame=true;
+                        }
+                        else {
+                            mInfoTextView.setText("Android won!");
+                            GameOver = true;
+                            androidScore++;
+                            pcScore.setText(androidScore.toString());
+                            endgame=true;
+                        }
+
+                    }
+                }else{
+
+                    isMyMove=true;
+
+
+                }
+
+            }
+
+
+            if (!endgame && setMove(TicTacToeGame.HUMAN_PLAYER, pos)&& singleplayer){
 // If no winner yet, let the computer make a move
                 final int[] winner = {mGame.checkForWinner()};
                 if (winner[0] == 0 ) {
                     final Handler handler = new Handler();
                     mBoardView.setEnabled(false);
+
                     handler.postDelayed(new Runnable() {
                         @Override
                         public void run() {
                             // Do something after 5s = 5000ms
+                            mInfoTextView.setText("It's your turn.");
                             int move = mGame.getComputerMove();
                             setMove(TicTacToeGame.COMPUTER_PLAYER, move);
                             mComputerMediaPlayer.start();
@@ -259,15 +628,12 @@ public class MainActivity extends AppCompatActivity {
 
                         }
                     }, 2000);
-                    mInfoTextView.setText("It's Android's turn.");
-
-
-
 
 
                 }
                 if (winner[0] == 0) {
-                    mInfoTextView.setText("It's your turn.");
+                    mInfoTextView.setText("It's Android's turn.");
+
                     mHumanMediaPlayer.start();
                 }
                 else if (winner[0] == 1)
