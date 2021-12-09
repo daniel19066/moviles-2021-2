@@ -379,7 +379,34 @@ public class MainActivity extends AppCompatActivity {
                                             mInfoTextView.setText("It's other player turn.");
                                             mBoardView.setEnabled(false);
                                         }
+                                        final int[] winner = {mGame.checkForWinner()};
+                                        if (winner[0] == 0) {
 
+                                        }
+                                        else if (winner[0] == 1)
+                                        {
+                                            mInfoTextView.setText("It's a tie!");
+                                            GameOver=true;
+                                            empateScore++;
+                                            empate.setText(empateScore.toString());
+                                            endgame=true;
+                                            mBoardView.setEnabled(false);
+                                        }
+
+                                        else if (winner[0] == 2) {
+
+
+                                            mInfoTextView.setText("You won!");
+                                            mBoardView.setEnabled(false);
+                                        }
+                                        else {
+                                            mInfoTextView.setText("the other player won!");
+                                            GameOver = true;
+                                            androidScore++;
+                                            pcScore.setText(androidScore.toString());
+                                            endgame=true;
+                                            mBoardView.setEnabled(false);
+                                        }
 
                                     }
                                 }
@@ -574,6 +601,21 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         else if (winner[0] == 2) {
+                            db.collection("board").document("board_chars")
+                                    .set(juegoOnline)
+                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void aVoid) {
+                                            System.out.println("funciono escribir");
+                                        }
+                                    })
+                                    .addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            System.out.println("no funciono escribir");
+                                        }
+                                    });
+
                             mInfoTextView.setText("You won!");
                             GameOver = true;
                             humanSc++;
@@ -634,7 +676,7 @@ public class MainActivity extends AppCompatActivity {
                 if (winner[0] == 0) {
                     mInfoTextView.setText("It's Android's turn.");
 
-                    mHumanMediaPlayer.start();
+
                 }
                 else if (winner[0] == 1)
                 {
