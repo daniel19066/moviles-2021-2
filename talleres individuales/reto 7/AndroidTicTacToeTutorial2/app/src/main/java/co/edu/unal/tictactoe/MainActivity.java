@@ -592,7 +592,20 @@ public class MainActivity extends AppCompatActivity {
 
                         }
                         else if (winner[0] == 1)
-                        {
+                        {db.collection("board").document("board_chars")
+                                .set(juegoOnline)
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        System.out.println("funciono escribir");
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        System.out.println("no funciono escribir");
+                                    }
+                                });
                             mInfoTextView.setText("It's a tie!");
                             GameOver=true;
                             empateScore++;
