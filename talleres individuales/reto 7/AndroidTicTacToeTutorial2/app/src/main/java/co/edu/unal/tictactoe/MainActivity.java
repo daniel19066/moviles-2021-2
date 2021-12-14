@@ -344,7 +344,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
             db.collection("board")
-                    .whereEqualTo("turno1", "ocupado").addSnapshotListener(new EventListener<QuerySnapshot>() {
+                    .whereEqualTo("name", roomName).addSnapshotListener(new EventListener<QuerySnapshot>() {
                 @Override
                 public void onEvent(@Nullable QuerySnapshot snapshots,
                                     @Nullable FirebaseFirestoreException e) {
