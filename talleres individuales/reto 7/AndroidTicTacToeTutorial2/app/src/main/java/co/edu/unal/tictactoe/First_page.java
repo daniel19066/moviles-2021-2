@@ -8,6 +8,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+import co.edu.unal.tictactoe.adapter.RoomsAdapter;
+
 
 public class First_page extends AppCompatActivity {
     private boolean singleUser = false;
@@ -18,7 +20,7 @@ public class First_page extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        intent= new Intent(this, MainActivity.class);
+        intent= new Intent(this, MainMultiplayer.class);
         button = (Button) findViewById(R.id.button11);
         button1 = (Button) findViewById(R.id.button12);
 

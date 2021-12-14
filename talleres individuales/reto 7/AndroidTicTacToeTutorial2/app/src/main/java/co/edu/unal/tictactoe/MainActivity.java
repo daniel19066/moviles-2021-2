@@ -65,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
     MediaPlayer mHumanMediaPlayer;
     MediaPlayer mComputerMediaPlayer;
     private SharedPreferences mPrefs;
+    private String roomName;
 
     @Override
     protected void onResume() {
@@ -78,6 +79,9 @@ public class MainActivity extends AppCompatActivity {
         mHumanMediaPlayer.release();
         mComputerMediaPlayer.release();
     }
+
+
+
     @Override
     protected void onDestroy(){
         super.onDestroy();
@@ -94,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
             juegoOnline.put("turno1", "");
             juegoOnline.put("turno2", "");
             juegoOnline.put("turnoactual", "1");
-            db.collection("board").document("board_chars")
+            db.collection("board").document(roomName)
                     .set(juegoOnline)
                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
@@ -134,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
                     juegoOnline.put("8", " ");
                     juegoOnline.put("turno1", "");
                     juegoOnline.put("turno2", "");
-                    db.collection("board").document("board_chars")
+                    db.collection("board").document(roomName)
                             .set(juegoOnline)
                             .addOnSuccessListener(new OnSuccessListener<Void>() {
                                 @Override
@@ -248,6 +252,7 @@ public class MainActivity extends AppCompatActivity {
         humanSc = mPrefs.getInt("mHumanWins", 0);
         androidScore = mPrefs.getInt("mComputerWins", 0);
         empateScore = mPrefs.getInt("mTies", 0);
+        roomName= getIntent().getExtras().getString("name");
         if (savedInstanceState == null) {
             startNewGame();
         }
@@ -264,7 +269,7 @@ public class MainActivity extends AppCompatActivity {
         }
         displayScores();
         if(!singleplayer) {
-            db.collection("board").document("board_chars")
+            db.collection("board").document(roomName)
                     .get()
                     .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                         @Override
@@ -279,7 +284,7 @@ public class MainActivity extends AppCompatActivity {
                                         juegoOnline.put("turno1","ocupado");
                                         System.out.println(juegoOnline);
                                         turnoOnline="1";
-                                        db.collection("board").document("board_chars")
+                                        db.collection("board").document(roomName)
                                                 .set(juegoOnline)
                                                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                                                     @Override
@@ -298,7 +303,7 @@ public class MainActivity extends AppCompatActivity {
                                         System.out.println(juegoOnline);
                                         turnoOnline="2";
 
-                                        db.collection("board").document("board_chars")
+                                        db.collection("board").document(roomName)
                                                 .set(juegoOnline)
                                                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                                                     @Override
@@ -462,7 +467,7 @@ public class MainActivity extends AppCompatActivity {
         for(int i=0;i<board1.length;i++){
             board.put(String.valueOf(i), String.valueOf(board1[i]));
         }
-        db.collection("board").document("board_chars")
+        db.collection("board").document(roomName)
                 .set(board)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
@@ -553,7 +558,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-                final DocumentReference docRef = db.collection("board").document("board_chars");
+                final DocumentReference docRef = db.collection("board").document(roomName);
 
                 mBoardView.setEnabled(false);
 
@@ -572,7 +577,7 @@ public class MainActivity extends AppCompatActivity {
 
 
                         if (winner[0] == 0) {
-                            db.collection("board").document("board_chars")
+                            db.collection("board").document(roomName)
                                     .set(juegoOnline)
                                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                                         @Override
@@ -592,7 +597,7 @@ public class MainActivity extends AppCompatActivity {
 
                         }
                         else if (winner[0] == 1)
-                        {db.collection("board").document("board_chars")
+                        {db.collection("board").document(roomName)
                                 .set(juegoOnline)
                                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                                     @Override
@@ -614,7 +619,7 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         else if (winner[0] == 2) {
-                            db.collection("board").document("board_chars")
+                            db.collection("board").document(roomName)
                                     .set(juegoOnline)
                                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                                         @Override
