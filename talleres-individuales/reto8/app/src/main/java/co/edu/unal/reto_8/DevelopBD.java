@@ -103,7 +103,6 @@ public class DevelopBD extends SQLiteOpenHelper {
                 filClase.add(new EmpresaModelo(cursor.getString(0),cursor.getString(1),cursor.getString(2),cursor.getString(3),cursor.getString(4),cursor.getString(5)));
             }while(cursor.moveToNext());
         }
-        System.out.println(filClase.get(0).getUrlweb());
         return filClase;
     }
 }
